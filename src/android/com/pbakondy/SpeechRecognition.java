@@ -58,7 +58,12 @@ public class SpeechRecognition extends CordovaPlugin {
     private Context context;
     private View view;
     private SpeechRecognizer recognizer;
-
+    private int matches = 5;
+    private String prompt = null;
+    private String lang = null;
+    private Boolean showPartial = false;
+    private Boolean showPopup = false;
+    private Boolean continues = false;
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -101,25 +106,23 @@ public class SpeechRecognition extends CordovaPlugin {
                     return true;
                 }
 
-                String lang = args.optString(0);
+                lang = args.optString(0);
                 if (lang == null || lang.isEmpty() || lang.equals("null")) {
                     lang = Locale.getDefault().toString();
                 }
 
-                int matches = args.optInt(1, MAX_RESULTS);
+                matches = args.optInt(1, MAX_RESULTS);
 
-                String prompt = args.optString(2);
+                prompt = args.optString(2);
                 if (prompt == null || prompt.isEmpty() || prompt.equals("null")) {
                     prompt = null;
                 }
 
                 mLastPartialResults = new JSONArray();
-                Boolean showPartial = args.optBoolean(3, false);
-                Boolean showPopup = args.optBoolean(4, true);
-                int wait_time = args.optInt(5,0);
-                int wait_time2 = args.optInt(6,0);
-                int wait_time3 = args.optInt(7,0);
-                startListening(lang, matches, prompt,showPartial, showPopup, wait_time,wait_time2,wait_time3);
+                showPartial = args.optBoolean(3, false);
+                showPopup = args.optBoolean(4, true);
+                continues = args.optBoolean(5,false);
+                startListening();
 
                 return true;
             }
@@ -165,25 +168,19 @@ public class SpeechRecognition extends CordovaPlugin {
         return SpeechRecognizer.isRecognitionAvailable(context);
     }
 
-    private void startListening(String language, int matches, String prompt, final Boolean showPartial, Boolean showPopup, int wait_time, int wait_time2, int wait_time3) {
-        Log.d(LOG_TAG, "startListening() language: " + language + ", matches: " + matches + ", prompt: " + prompt + ", showPartial: " + showPartial + ", showPopup: " + showPopup + ", wait_time: " + wait_time);
+    private void startListening() {
+        Log.d(LOG_TAG, "startListening() language: " + lang + ", matches: " + matches + ", prompt: " + prompt + ", showPartial: " + showPartial + ", showPopup: " + showPopup + "" );
 
         final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang);
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, matches);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,
                 activity.getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, showPartial);
         intent.putExtra("android.speech.extra.DICTATION_MODE", showPartial);
-        if (wait_time != 0)
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, wait_time);
-        if (wait_time2 != 0)
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, wait_time2);
-        if (wait_time3 != 0)
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, wait_time3);
-        //}
+
 
         if (prompt != null) {
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt);
@@ -290,9 +287,14 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onError(int errorCode) {
+            if(errorCode == 6||errorCode == 7){
+                startListening();
+            }
+            else{
             String errorMessage = getErrorText(errorCode);
             Log.d(LOG_TAG, "Error: " + errorMessage);
             callbackContext.error(errorMessage);
+            }
         }
 
         @Override
