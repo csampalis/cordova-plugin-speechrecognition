@@ -116,8 +116,10 @@ public class SpeechRecognition extends CordovaPlugin {
                 mLastPartialResults = new JSONArray();
                 Boolean showPartial = args.optBoolean(3, false);
                 Boolean showPopup = args.optBoolean(4, true);
-                int wait_time = args.optInt(5,MAX_WAIT_TIME);
-                startListening(lang, matches, prompt,showPartial, showPopup, wait_time);
+                int wait_time = args.optInt(5,0);
+                int wait_time2 = args.optInt(6,0);
+                int wait_time3 = args.optInt(7,0);
+                startListening(lang, matches, prompt,showPartial, showPopup, wait_time,wait_time2,wait_time3);
 
                 return true;
             }
@@ -163,7 +165,7 @@ public class SpeechRecognition extends CordovaPlugin {
         return SpeechRecognizer.isRecognitionAvailable(context);
     }
 
-    private void startListening(String language, int matches, String prompt, final Boolean showPartial, Boolean showPopup, int wait_time) {
+    private void startListening(String language, int matches, String prompt, final Boolean showPartial, Boolean showPopup, int wait_time, int wait_time2, int wait_time3) {
         Log.d(LOG_TAG, "startListening() language: " + language + ", matches: " + matches + ", prompt: " + prompt + ", showPartial: " + showPartial + ", showPopup: " + showPopup + ", wait_time: " + wait_time);
 
         final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -175,9 +177,12 @@ public class SpeechRecognition extends CordovaPlugin {
                 activity.getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, showPartial);
         intent.putExtra("android.speech.extra.DICTATION_MODE", showPartial);
-        //if (wait_time != null){
+        if (wait_time != 0)
             intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, wait_time);
-            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, wait_time);
+        if (wait_time2 != 0)
+            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, wait_time2);
+        if (wait_time3 != 0)
+            intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, wait_time3);
         //}
 
         if (prompt != null) {
