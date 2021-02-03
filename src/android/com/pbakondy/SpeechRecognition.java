@@ -12,11 +12,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import android.Manifest;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -51,6 +53,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private JSONArray mLastPartialResults = new JSONArray();
 
     private static final String RECORD_AUDIO_PERMISSION = Manifest.permission.RECORD_AUDIO;
+    private static final String ACCESS_NOTIFICATION_POLICY = Manifest.permission.ACCESS_NOTIFICATION_POLICY;
 
     private CallbackContext callbackContext;
     private LanguageDetailsChecker languageDetailsChecker;
@@ -64,6 +67,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private Boolean showPartial = false;
     private Boolean showPopup = false;
     private Boolean continues = false;
+    private int currentVolume;
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -128,6 +132,7 @@ public class SpeechRecognition extends CordovaPlugin {
             }
 
             if (STOP_LISTENING.equals(action)) {
+                continues = false;
                 final CallbackContext callbackContextStop = this.callbackContext;
                 view.post(new Runnable() {
                     @Override
@@ -186,6 +191,17 @@ public class SpeechRecognition extends CordovaPlugin {
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt);
         }
 
+        //hasNotificationPermission();
+        //AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
+        //currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        //audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        mute();
         if (showPopup) {
             cordova.startActivityForResult(this, intent, REQUEST_CODE_SPEECH);
         } else {
@@ -212,6 +228,38 @@ public class SpeechRecognition extends CordovaPlugin {
 
         Intent detailsIntent = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
         activity.sendOrderedBroadcast(detailsIntent, null, languageDetailsChecker, null, Activity.RESULT_OK, null, null);
+    }
+
+    private void hasNotificationPermission() {
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && !notificationManager.isNotificationPolicyAccessGranted()) {
+
+            Intent intent2 = new Intent(
+                    android.provider.Settings
+                            .ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+
+            activity.startActivity(intent2);
+        }
+    }
+
+    private void mute() {
+        AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
+        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+       // audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+       // audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+       // audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+       // audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+    }
+
+    private void unmute() {
+        AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
     }
 
     private void hasAudioPermission() {
@@ -275,6 +323,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onBeginningOfSpeech() {
+
         }
 
         @Override
@@ -287,7 +336,8 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onError(int errorCode) {
-            if(errorCode == 6||errorCode == 7){
+            mute();
+            if((errorCode == 6||errorCode == 7)&& continues){
                 startListening();
             }
             else{
@@ -323,6 +373,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onReadyForSpeech(Bundle params) {
+            unmute();
             Log.d(LOG_TAG, "onReadyForSpeech");
         }
 
