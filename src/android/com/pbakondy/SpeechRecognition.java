@@ -67,7 +67,10 @@ public class SpeechRecognition extends CordovaPlugin {
     private Boolean showPartial = false;
     private Boolean showPopup = false;
     private Boolean continues = false;
-    private int currentVolume;
+    private int systemVolume;
+    private int ringVolume;
+    private int notVolume;
+    private int musicVolume;
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -139,6 +142,8 @@ public class SpeechRecognition extends CordovaPlugin {
                     public void run() {
                         if(recognizer != null) {
                             recognizer.stopListening();
+                            recognizer.destroy();
+                            unmute();
                         }
                         callbackContextStop.success();
                     }
@@ -247,24 +252,33 @@ public class SpeechRecognition extends CordovaPlugin {
 
     private void mute() {
         AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
-        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_SYSTEM);
-        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-        if (currentVolume != 0) {
-            double percent = (double)currentVolume / (double)max;
-            currentVolume = (int)Math.round(percent * 100);
-        }
+
+
+        notVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+        ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+        systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        musicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
        // audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        //audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-       // audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
        // audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
     private void unmute() {
-        AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, currentVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        if(ringVolume!=0)
+            audioManager.setStreamVolume(AudioManager.STREAM_RING, ringVolume, AudioManager.ADJUST_SAME);
+        if(systemVolume!=0)
+            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, systemVolume, AudioManager.ADJUST_SAME);
+        if(notVolume!=0)
+            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, notVolume, AudioManager.ADJUST_SAME);
+        if(musicVolume!=0)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, musicVolume, AudioManager.ADJUST_SAME);
+
     }
 
     private void hasAudioPermission() {
