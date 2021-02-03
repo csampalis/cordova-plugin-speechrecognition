@@ -22,6 +22,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -72,6 +73,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private int notVolume;
     private int musicVolume;
     private Boolean isMuted = false;
+    private Boolean running = false;
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -93,7 +95,7 @@ public class SpeechRecognition extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         this.callbackContext = callbackContext;
-
+        running = false;
         Log.d(LOG_TAG, "execute() action " + action);
 
         try {
@@ -207,7 +209,21 @@ public class SpeechRecognition extends CordovaPlugin {
         //audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        mute();
+        //mute();
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            mute();
+                            new android.os.Handler().postDelayed(
+                                    new Runnable() {
+                                        public void run() {
+                                            unmute();
+                                        }
+                                    },
+                                    1000);
+                        }
+                    },
+                    5000);
         if (showPopup) {
             cordova.startActivityForResult(this, intent, REQUEST_CODE_SPEECH);
         } else {
@@ -357,7 +373,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onError(int errorCode) {
-            mute();
+            //mute();
             if((errorCode == 6||errorCode == 7)&& continues){
                 startListening();
             }
@@ -395,7 +411,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onReadyForSpeech(Bundle params) {
-            unmute();
+            //unmute();
             Log.d(LOG_TAG, "onReadyForSpeech");
         }
 
@@ -414,6 +430,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onRmsChanged(float rmsdB) {
+
         }
 
         private String getErrorText(int errorCode) {
