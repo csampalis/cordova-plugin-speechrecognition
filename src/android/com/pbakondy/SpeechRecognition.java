@@ -71,6 +71,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private int ringVolume;
     private int notVolume;
     private int musicVolume;
+    private Boolean isMuted = false;
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -253,12 +254,13 @@ public class SpeechRecognition extends CordovaPlugin {
     private void mute() {
         AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
 
-
-        notVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
-        ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-        systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-        musicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
+        if(!isMuted) {
+            notVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+            ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+            systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+            musicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
+        isMuted = true;
        // audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
@@ -271,14 +273,14 @@ public class SpeechRecognition extends CordovaPlugin {
     private void unmute() {
         AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
         if(ringVolume!=0)
-            audioManager.setStreamVolume(AudioManager.STREAM_RING, ringVolume, AudioManager.ADJUST_SAME);
+            audioManager.setStreamVolume(AudioManager.STREAM_RING, ringVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         if(systemVolume!=0)
-            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, systemVolume, AudioManager.ADJUST_SAME);
+            audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, systemVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         if(notVolume!=0)
-            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, notVolume, AudioManager.ADJUST_SAME);
+            audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, notVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         if(musicVolume!=0)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, musicVolume, AudioManager.ADJUST_SAME);
-
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, musicVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        isMuted = false;
     }
 
     private void hasAudioPermission() {
@@ -363,6 +365,7 @@ public class SpeechRecognition extends CordovaPlugin {
             String errorMessage = getErrorText(errorCode);
             Log.d(LOG_TAG, "Error: " + errorMessage);
             callbackContext.error(errorMessage);
+            unmute();
             }
         }
 
