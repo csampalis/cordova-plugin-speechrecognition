@@ -146,6 +146,9 @@ public class SpeechRecognition extends CordovaPlugin {
                         if(recognizer != null) {
                             recognizer.stopListening();
                             recognizer.destroy();
+                            recognizer = SpeechRecognizer.createSpeechRecognizer(activity);
+                            SpeechRecognitionListener listener = new SpeechRecognitionListener();
+                            recognizer.setRecognitionListener(listener);
                             unmute();
                         }
                         callbackContextStop.success();
@@ -223,7 +226,7 @@ public class SpeechRecognition extends CordovaPlugin {
                                     1000);
                         }
                     },
-                    5000);
+                    3500);
         if (showPopup) {
             cordova.startActivityForResult(this, intent, REQUEST_CODE_SPEECH);
         } else {
