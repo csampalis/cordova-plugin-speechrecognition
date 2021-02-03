@@ -247,7 +247,12 @@ public class SpeechRecognition extends CordovaPlugin {
 
     private void mute() {
         AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
-        currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_SYSTEM);
+        int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        if (currentVolume != 0) {
+            double percent = (double)currentVolume / (double)max;
+            currentVolume = (int)Math.round(percent * 100);
+        }
        // audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
@@ -259,7 +264,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
     private void unmute() {
         AudioManager audioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
-        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, currentVolume, AudioManager.FLAG_SHOW_UI + AudioManager.FLAG_PLAY_SOUND);
+        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, currentVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
     private void hasAudioPermission() {
