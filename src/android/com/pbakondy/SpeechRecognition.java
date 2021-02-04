@@ -212,20 +212,13 @@ public class SpeechRecognition extends CordovaPlugin {
         //audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //mute();
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            mute();
-                            new android.os.Handler().postDelayed(
-                                    new Runnable() {
-                                        public void run() {
-                                            unmute();
-                                        }
-                                    },
-                                    1000);
-                        }
-                    },
-                    3900);
+        new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        mute();
+                    }
+                },
+                1000);
         if (showPopup) {
             cordova.startActivityForResult(this, intent, REQUEST_CODE_SPEECH);
         } else {
@@ -274,16 +267,16 @@ public class SpeechRecognition extends CordovaPlugin {
 
         if(!isMuted) {
             notVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
-            ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+           // ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
             systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
-            musicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+           // musicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         }
         isMuted = true;
        // audioManager.setStreamVolume(AudioManager.STREAM_ALARM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         //audioManager.setStreamVolume(AudioManager.STREAM_DTMF, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        //audioManager.setStreamVolume(AudioManager.STREAM_RING, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
        // audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
