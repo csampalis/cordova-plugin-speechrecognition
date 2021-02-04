@@ -54,7 +54,6 @@ public class SpeechRecognition extends CordovaPlugin {
     private JSONArray mLastPartialResults = new JSONArray();
 
     private static final String RECORD_AUDIO_PERMISSION = Manifest.permission.RECORD_AUDIO;
-    private static final String ACCESS_NOTIFICATION_POLICY = Manifest.permission.ACCESS_NOTIFICATION_POLICY;
 
     private CallbackContext callbackContext;
     private LanguageDetailsChecker languageDetailsChecker;
@@ -226,7 +225,7 @@ public class SpeechRecognition extends CordovaPlugin {
                                     1000);
                         }
                     },
-                    3500);
+                    3900);
         if (showPopup) {
             cordova.startActivityForResult(this, intent, REQUEST_CODE_SPEECH);
         } else {
